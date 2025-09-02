@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Appreciation 2025 - The Quest for Synergy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glow-color: #fde047; /* yellow-200 */
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0c0a1a;
+            color: #e2e8f0;
+            overflow: hidden;
+            cursor: default;
+        }
+        
+        #magic-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            outline: none;
+            z-index: 0;
+        }
+        
+        #labels-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .emblem-label {
+            position: absolute;
+            color: white;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            text-shadow: 0 0 8px black;
+            transition: all 0.3s ease;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+        }
+        .emblem-label.collected {
+            background-color: rgba(74, 222, 128, 0.8);
+            color: #052e16;
+            text-shadow: none;
+            font-size: 14px;
+        }
+
+        .screen {
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            padding: 1rem;
+            background: radial-gradient(circle at 50% 50%, rgba(12, 10, 26, 0.4) 0%, rgba(12, 10, 26, 0.8) 70%, #0c0a1a 100%);
+            transition: opacity 0.5s ease-in-out;
+        }
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .glass-panel {
+            background: rgba(20, 15, 40, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .action-button {
+            transition: all 0.3s ease;
+            text-shadow: 0 0 8px rgba(0,0,0,0.5);
+        }
+        .action-button:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .pulsing-glow {
+            animation: pulseGlow 2.5s infinite ease-out;
+        }
+
+        .fade-in { animation: fadeIn 1s ease-out forwards; }
+        .fade-out-custom { animation: fadeOut 0.5s ease-in forwards; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 15px rgba(234,88,12,0.5); }
+            50% { box-shadow: 0 0 30px rgba(234,88,12,0.9); }
+            100% { box-shadow: 0 0 15px rgba(234,88,12,0.5); }
+        }
+        
+        .team-card-container { perspective: 1000px; transition: all 0.5s ease; }
+        .team-card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .team-card.is-flipped { transform: rotateY(180deg); }
+        .team-card-face { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 1rem; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; }
+        .team-card-back { transform: rotateY(180deg); }
+        .team-card-container.is-revealed { z-index: 100; transform: scale(1.1); box-shadow: 0 0 30px 0 var(--glow-color), 0 0 50px 0 rgba(253, 224, 71, 0.5); border-radius: 1rem;}
+        .search-input { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2); transition: all 0.3s ease; }
+        .search-input:focus { background: rgba(0,0,0,0.3); border-color: var(--glow-color); box-shadow: 0 0 15px var(--glow-color); }
+        
+        .footer {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.4);
+            z-index: 100;
+        }
+
+        #suggestions-box {
+            position: absolute;
+            width: calc(100% - 3rem); /* Match input width */
+            background: rgba(30, 25, 50, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.75rem;
+            margin-top: 0.5rem;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 110;
+        }
+        .suggestion-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .suggestion-item:hover {
+            background-color: rgba(147, 51, 234, 0.5);
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="magic-canvas"></canvas>
+    <div id="labels-container"></div>
+
+    <div id="story-screen" class="screen">
+        <div class="glass-panel p-8 md:p-12 text-center max-w-3xl mx-auto fade-in">
+            <h2 class="text-2xl font-semibold text-sky-300">Employee Appreciation Week 2025</h2>
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-sky-300 to-cyan-200 mt-2">The Quest for Synergy</h1>
+            <p class="mt-4 md:text-lg text-slate-300">This week, we unite our unique talents. Each of you is essential to our shared success.</p>
+            <p class="mt-4 md:text-lg text-slate-300">Your quest: Assemble the five Emblems of Synergy to reveal your team!</p>
+            <button id="start-journey-btn" class="action-button pulsing-glow mt-8 text-lg font-bold bg-orange-600 hover:bg-orange-500 rounded-lg px-8 py-4">Begin Your Quest</button>
+        </div>
+    </div>
+
+    <div id="journey-screen" class="screen hidden pointer-events-none">
+        <div class="glass-panel p-6 text-center max-w-md absolute top-8 left-8 fade-in pointer-events-auto">
+             <h2 class="text-2xl font-bold text-sky-300">Assemble the Sigil</h2>
+             <p id="journey-instruction" class="text-slate-300 mt-1 h-12">Hover over the emblems to restore the fragments of the sigil.</p>
+             <p id="emblem-counter" class="mt-2 text-xl font-bold text-white">Fragments Restored: 0 / 5</p>
+        </div>
+    </div>
+
+    <div id="arrival-screen" class="screen hidden">
+         <div class="glass-panel p-8 text-center max-w-xl mx-auto fade-in">
+            <h2 class="text-3xl font-bold text-green-300">The Sigil is Complete!</h2>
+            <p class="text-slate-200 mt-2">The path to your team is clear.</p>
+            <button id="proceed-btn" class="action-button mt-6 text-lg font-bold bg-green-600 hover:bg-green-500 rounded-lg px-8 py-4 shadow-[0_0_15px_rgba(34,197,94,0.5)]">Proceed to Reveal</button>
+        </div>
+    </div>
+
+    <div id="location-screen" class="screen hidden">
+         <div class="glass-panel p-8 text-center max-w-xl mx-auto fade-in">
+             <h2 class="text-3xl font-bold text-sky-300">Select Your location</h2>
+             <p class="text-slate-200 mt-2">Which Location's team are you seeking?</p>
+             <div class="flex flex-col sm:flex-row gap-4 mt-6 justify-center">
+                <button onclick="selectLocation('ETV')" class="action-button text-lg font-bold bg-purple-600 hover:bg-purple-500 rounded-lg px-8 py-4 shadow-[0_0_15px_rgba(147,51,234,0.5)]">ETV Department</button>
+                <button onclick="selectLocation('PTP')" class="action-button text-lg font-bold bg-sky-500 hover:bg-sky-400 rounded-lg px-8 py-4 shadow-[0_0_15px_rgba(14,165,233,0.5)]">PTP Department</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="discovery-screen" class="screen hidden">
+        <div class="glass-panel p-8 md:p-12 text-center max-w-2xl mx-auto fade-in">
+            <h2 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400">Find Your Partbers</h2>
+            <p class="mt-4 text-slate-300">How would you like to find your team?</p>
+            <div class="mt-8 space-y-6">
+                <div class="relative">
+                    <p class="font-semibold text-lg text-white">Find My Team</p>
+                    <div class="flex flex-col sm:flex-row gap-2 mt-2">
+                        <input id="name-search-input" type="text" placeholder="Enter your name..." class="search-input w-full flex-grow px-4 py-3 rounded-lg text-white focus:outline-none" autocomplete="off">
+                        <button id="find-by-name-btn" class="action-button bg-green-600 hover:bg-green-500 rounded-lg px-6 py-3 font-semibold w-full sm:w-auto">Reveal</button>
+                    </div>
+                     <div id="suggestions-box" class="hidden"></div>
+                     <p id="search-error" class="text-red-400 mt-2 h-4"></p>
+                </div>
+                <div>
+                     <p class="font-semibold text-lg text-white">Or</p>
+                     <button id="explore-teams-btn" class="action-button mt-2 bg-gray-600 hover:bg-gray-500 rounded-lg px-8 py-3 font-semibold">Explore All Charters</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="teams-screen" class="screen hidden overflow-y-auto">
+        <div class="w-full max-w-7xl mx-auto text-center">
+            <h2 id="teams-title" class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-sky-300">The Official Team Charters</h2>
+            <p id="teams-subtitle" class="mt-2 text-slate-300">Click on any charter to see its members.</p>
+            <div id="teams-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12"></div>
+            <button onclick="goBack()" class="action-button mt-12 bg-gray-700 hover:bg-gray-600 rounded-lg px-6 py-3 font-semibold">&#8592; Start a New Quest</button>
+        </div>
+    </div>
+    
+    <div class="footer">
+        Brought to you by Ethos
+    </div>
+
+    <script>
+        // --- DATA (JSON FORMAT) ---
+        const teamLogos = {
+            'Dosa Dudes': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><defs><linearGradient id="dosaGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#F7C479"/><stop offset="100%" stop-color="#E8A856"/></linearGradient></defs><g transform="rotate(-10 50 50)"><path d="M20 70 C 40 20, 60 20, 80 70 L 75 75 C 60 30, 40 30, 25 75 Z" fill="url(#dosaGrad)"/><path d="M22 68 C 40 25, 60 25, 78 68" fill="none" stroke="#A97142" stroke-width="3" stroke-linecap="round"/></g><rect x="25" y="65" width="50" height="8" rx="4" fill="#333"/><rect x="28" y="66" width="15" height="6" rx="3" fill="#FFF" opacity="0.8"/></svg>`,
+            'Curry Crusaders': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><defs><radialGradient id="curryGrad"><stop offset="50%" stop-color="#FFA500"/><stop offset="100%" stop-color="#FF8C00"/></radialGradient></defs><path d="M50 85 L15 65 L20 20 L80 20 L85 65 Z" fill="#555"/><path d="M50 82 L18 63 L22 23 L78 23 L82 63 Z" fill="#FFF"/><circle cx="50" cy="45" r="30" fill="url(#curryGrad)"/><path d="M45 40 L55 40 L55 50 L45 50 Z" fill="white" opacity="0.5" transform="rotate(15 50 45)"/><path d="M30,15 L70,15" stroke="#FFF" stroke-width="4" stroke-linecap="round"/><path d="M50,15 V5" stroke="#FFF" stroke-width="4" stroke-linecap="round"/></svg>`,
+            'Thepla Thalas': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><defs><linearGradient id="theplaGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F4A460"/><stop offset="100%" stop-color="#DEB887"/></linearGradient></defs><circle cx="50" cy="50" r="40" fill="url(#theplaGrad)"/><circle cx="50" cy="50" r="35" fill="none" stroke="#A0522D" stroke-width="2" stroke-dasharray="10 5"/><circle cx="35" cy="35" r="3" fill="#A0522D" opacity="0.7"/><circle cx="65" cy="35" r="3" fill="#A0522D" opacity="0.7"/><circle cx="35" cy="65" r="3" fill="#A0522D" opacity="0.7"/><circle cx="65" cy="65" r="3" fill="#A0522D" opacity="0.7"/><path d="M50 25 L 40 40 L 50 55 L 60 40 Z" fill="#FFF" opacity="0.8"/></svg>`,
+            'Spicy Samosas': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><defs><linearGradient id="samosaGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#FFA500"/></linearGradient></defs><path d="M15 75 L 50 15 L 85 75 Q 50 90 15 75 Z" fill="url(#samosaGrad)"/><path d="M15 75 L 50 15 L 85 75" fill="none" stroke="#D2691E" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><path d="M70 70 C 80 60, 95 60, 95 50 S 80 40, 75 50" fill="none" stroke="#FF4500" stroke-width="5" stroke-linecap="round"/></svg>`,
+            'Masala Mavericks': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><g transform="rotate(15 50 50)"><path d="M50,15 L85,35 L85,65 L50,85 L15,65 L15,35 Z" fill="#8B4513"/><path d="M50,18 L82,37 V63 L50,82 L18,63 V37 Z" fill="#A0522D"/><circle cx="50" cy="50" r="20" fill="#CD853F"/><circle cx="35" cy="40" r="5" fill="#FFC300"/><circle cx="65" cy="40" r="5" fill="#C70039"/><circle cx="35" cy="60" r="5" fill="#DAF7A6"/><circle cx="65" cy="60" r="5" fill="#FF5733"/></g></svg>`,
+            'Biryani Bandits': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><path d="M20,50 C20,30 80,30 80,50 V80 C80,90 20,90 20,80 Z" fill="#CD853F"/><path d="M25,48 C25,35 75,35 75,48" fill="#DEB887"/><path d="M15 45 H 85 L 75 55 H 25 Z" fill="#DC143C"/><circle cx="35" cy="50" r="3" fill="#FFF"/><path d="M20 45 L 10 40" stroke="#DC143C" stroke-width="4" stroke-linecap="round"/><path d="M80 45 L 90 40" stroke="#DC143C" stroke-width="4" stroke-linecap="round"/></svg>`,
+            'Paneer Pirates': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><path d="M50 20 C 30 20, 20 30, 20 50 S 30 80, 50 80 S 80 70, 80 50 S 70 20, 50 20 Z" fill="#2C2C2C"/><rect x="35" y="35" width="30" height="30" rx="5" fill="#FFF8DC" transform="rotate(10 50 50)"/><circle cx="43" cy="48" r="4" fill="#2C2C2C"/><circle cx="57" cy="48" r="4" fill="#2C2C2C"/><rect x="40" y="58" width="20" height="4" rx="2" fill="#2C2C2C"/><path d="M30 75 L 70 75" stroke="#FFF8DC" stroke-width="6" stroke-linecap="round" transform="rotate(-15 50 50)"/><path d="M30 75 L 70 75" stroke="#FFF8DC" stroke-width="6" stroke-linecap="round" transform="rotate(15 50 50)"/></svg>`,
+            'Tandoori Titans': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><path d="M50 90 C 20 90, 20 50, 50 50 S 80 90, 50 90 Z" fill="#FF4500" opacity="0.8"/><path d="M50 80 C 30 80, 30 50, 50 50 S 70 80, 50 80 Z" fill="#FF6347" opacity="0.9"/><path d="M50 10 L 50 70" stroke="#8B4513" stroke-width="6" stroke-linecap="round"/><rect x="42" y="20" width="16" height="16" rx="4" fill="#CD5C5C" transform="rotate(15 50 28)"/><rect x="42" y="40" width="16" height="16" rx="4" fill="#CD5C5C" transform="rotate(-10 50 48)"/></svg>`,
+            'Lassi Legends': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><path d="M30 15 L 70 15 L 65 90 L 35 90 Z" fill="#FFFDD0"/><path d="M30 15 H 70" stroke="#E6D8AD" stroke-width="6"/><path d="M32 20 H 68" stroke="rgba(255,255,255,0.7)" stroke-width="4"/><path d="M50,15 L40,5 L60,5 Z" fill="#32CD32"/><path d="M50 5 C 40 0, 60 0, 50 5" fill="#84CC16"/></svg>`,
+            'Roti Rollers': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><circle cx="50" cy="60" r="30" fill="#F5DEB3"/><path d="M10 20 L 90 40 L 85 45 L 5 25 Z" fill="#DEB887" transform="rotate(-20 50 50)"/><path d="M15 22 L 88 42" stroke="#A0522D" stroke-width="3" stroke-linecap="round" transform="rotate(-20 50 50)"/></svg>`,
+            'Chai Chargers': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><path d="M25 25 H 75 V 75 H 25 Z" fill="rgba(255,255,255,0.1)"/><path d="M30 30 H 70 V 70 H 30 Z" fill="#C19A6B"/><path d="M70 40 H 80 V 60 H 70 Z" fill="#C19A6B"/><path d="M50 35 L 45 50 L 55 50 L 50 65" fill="none" stroke="#FFD700" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+            'Uthappam Unicorns': `<svg viewBox="0 0 100 100" class="w-20 h-20 mx-auto"><defs><linearGradient id="hornGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FF00FF" /><stop offset="50%" stop-color="#00FFFF" /><stop offset="100%" stop-color="#FFFF00" /></linearGradient></defs><circle cx="50" cy="55" r="35" fill="#F0E68C"/><path d="M50 5 L 40 55 H 60 Z" fill="url(#hornGrad)" transform="rotate(-10 50 50)"/><circle cx="40" cy="45" r="5" fill="#FF6347"/><circle cx="65" cy="50" r="4" fill="#32CD32"/><circle cx="45" cy="68" r="3" fill="#FF4500"/></svg>`,
+        };
+        const teamsData = { ETV: [{ name: 'Dosa Dudes', members: ['Aarav Sharma', 'Priya Patel', 'Rohan Das', 'Anika Gupta', 'Vikram Singh'] }, { name: 'Curry Crusaders', members: ['Sneha Reddy', 'Amit Kumar', 'Divya Nair', 'Karan Mehta', 'Pooja Desai'] }, { name: 'Thepla Thalas', members: ['Rajesh Shah', 'Meera Joshi', 'Harish Patel', 'Sunita Rao', 'Vivek Iyer'] }, { name: 'Spicy Samosas', members: ['Alia Khan', 'Imran Ahmed', 'Zara Begum', 'Farhan Ali', 'Sana Mirza'] }, { name: 'Masala Mavericks', members: ['Arjun Menon', 'Deepa Krishnan', 'Nikhil Varma', 'Lakshmi Pillai', 'Suresh Gopi'] }, { name: 'Biryani Bandits', members: ['Fatima Sheikh', 'Sameer Hasan', 'Aisha Baig', 'Yusuf Khan', 'Noor Fatima'] },], PTP: [{ name: 'Paneer Pirates', members: ['Aditi Verma', 'Ravi Chauhan', 'Kavita Singh', 'Mohit Agarwal', 'Geeta Yadav'] }, { name: 'Tandoori Titans', members: ['Sanjay Rathore', 'Neha Sharma', 'Ankit Tiwari', 'Shreya Saxena', 'Manish Pandey'] }, { name: 'Lassi Legends', members: ['Gurpreet Kaur', 'Harman Singh', 'Simranjeet Gill', 'Balwinder Dhillon', 'Jaspreet Sodhi'] }, { name: 'Roti Rollers', members: ['Ishaan Malhotra', 'Diya Kapoor', 'Kabir Khanna', 'Myra Mehra', 'Advik Chaudhary'] }, { name: 'Chai Chargers', members: ['Nisha Singhania', 'Rahul Bajaj', 'Priyanka Goel', 'Sameer Jindal', 'Anjali Mittal'] }, { name: 'Uthappam Unicorns', members: ['Shanti Murthy', 'Ganesh Kumar', 'Padma Rao', 'Karthik Reddy', 'Meenakshi Iyer'] },]};
+        const employeeDirectory = [].concat(...Object.keys(teamsData).map(location => [].concat(...teamsData[location].map(team => team.members.map(member => ({ name: member, team: team.name, location: location }))))));
+
+        // --- DOM Elements ---
+        const screens = {
+            story: document.getElementById('story-screen'),
+            journey: document.getElementById('journey-screen'),
+            arrival: document.getElementById('arrival-screen'),
+            location: document.getElementById('location-screen'),
+            discovery: document.getElementById('discovery-screen'),
+            teams: document.getElementById('teams-screen'),
+        };
+        const journeyInstruction = document.getElementById('journey-instruction');
+        const emblemCounter = document.getElementById('emblem-counter');
+        const findByNameBtn = document.getElementById('find-by-name-btn');
+        const nameSearchInput = document.getElementById('name-search-input');
+        const exploreTeamsBtn = document.getElementById('explore-teams-btn');
+        const searchError = document.getElementById('search-error');
+        const labelsContainer = document.getElementById('labels-container');
+        const teamsGrid = document.getElementById('teams-grid');
+        const suggestionsBox = document.getElementById('suggestions-box');
+
+
+        // --- Game State ---
+        let visitedEmblems = new Set();
+        let currentSelection = { location: null, employee: null };
+        let warpSpeed = 0.0;
+        let isWarping = false;
+        const HOVER_DURATION = 2000; // 2 seconds to collect
+        let hoveredEmblem = null;
+        let lastTime = 0;
+
+
+        // --- Audio Engine ---
+        let audioReady = false;
+        const synth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "fatsawtooth" }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
+        const chime = new Tone.PluckSynth({ attackNoise: 0.5, dampening: 4000, resonance: 0.9 }).toDestination();
+        const hum = new Tone.AMSynth({ harmonicity: 1.5, envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 0.5 } }).toDestination();
+        hum.volume.value = -10;
+        const noise = new Tone.Noise("white").toDestination();
+        const filter = new Tone.AutoFilter("4n").toDestination().start();
+        noise.connect(filter);
+        noise.volume.value = -30;
+        const ambient = new Tone.AMSynth().toDestination();
+        ambient.volume.value = -25;
+        const lockSound = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 5, envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.2 } }).toDestination();
+        lockSound.volume.value = -5;
+        
+        function playHum() { if(audioReady) hum.triggerAttack("C2"); }
+        function stopHum() { if(audioReady) hum.triggerRelease(); }
+        function playChime() { if(audioReady) chime.triggerAttackRelease("C5", "8n"); }
+        function playWhoosh() { if(!audioReady) return; noise.volume.rampTo(5, 0.1); noise.volume.rampTo(-30, 2, "+0.2"); }
+        function startAmbience() { if(audioReady) ambient.triggerAttack("A2"); }
+        function playLockSound() { if(audioReady) lockSound.triggerAttackRelease("C2", "8n"); }
+
+        // --- 3D Scene Setup ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('magic-canvas'), antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        camera.position.z = 50;
+        const mouse = new THREE.Vector2();
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        directionalLight.position.set(5, 10, 7.5);
+        scene.add(directionalLight);
+        const starGeometry = new THREE.BufferGeometry();
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute([].concat(...Array.from({ length: 5000 }, () => [(Math.random() - 0.5) * 2000, (Math.random() - 0.5) * 2000, (Math.random() - 0.5) * 2000])), 3));
+        const stars = new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.7 }));
+        scene.add(stars);
+
+        // --- Central Sigil ---
+        const sigilFragments = [];
+        const sigilGroup = new THREE.Group();
+        const fragmentCount = 5;
+        const radius = 12;
+        for (let i = 0; i < fragmentCount; i++) {
+            const angle = (i / fragmentCount) * Math.PI * 2;
+            const nextAngle = ((i + 1) / fragmentCount) * Math.PI * 2;
+            const shape = new THREE.Shape();
+            shape.absarc(0, 0, radius, angle, nextAngle, false);
+            shape.absarc(0, 0, radius - 2, nextAngle, angle, true);
+            const geometry = new THREE.ExtrudeGeometry(shape, { depth: 1, bevelEnabled: false });
+            geometry.center();
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                emissive: 0x555555,
+                metalness: 0.8,
+                roughness: 0.4,
+                transparent: true,
+                opacity: 0.1
+            });
+            const fragment = new THREE.Mesh(geometry, material);
+            fragment.userData.index = i;
+            sigilFragments.push(fragment);
+            sigilGroup.add(fragment);
+        }
+        scene.add(sigilGroup);
+        sigilGroup.visible = false;
+
+        // --- Particle Beam ---
+        const beamParticleCount = 500;
+        const beamParticleGeometry = new THREE.BufferGeometry();
+        const beamParticlePositions = new Float32Array(beamParticleCount * 3);
+        beamParticleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(beamParticlePositions, 3));
+        const beamParticleMaterial = new THREE.PointsMaterial({
+            size: 0.8,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        const particleBeam = new THREE.Points(beamParticleGeometry, beamParticleMaterial);
+        particleBeam.visible = false;
+        scene.add(particleBeam);
+
+        // --- 3D Model Creation Functions ---
+        function createMindIcon(material) { const group = new THREE.Group(); const headShape = new THREE.Shape(); headShape.moveTo(-6, -12); headShape.lineTo(-7, -8); headShape.absarc(-4, 0, 8, Math.PI * 1.2, Math.PI * 0, true); headShape.lineTo(4, -3); headShape.lineTo(2, -5); headShape.lineTo(0, -8); headShape.lineTo(-6, -12); const headGeometry = new THREE.ExtrudeGeometry(headShape, { depth: 2, bevelEnabled: true, bevelSize: 0.5, bevelSegments: 2 }); headGeometry.center(); const headMaterial = material.clone(); headMaterial.transparent = true; headMaterial.opacity = 0.4; const headMesh = new THREE.Mesh(headGeometry, headMaterial); const gearShape = new THREE.Shape(); const outerRadius = 4; const teeth = 6; gearShape.moveTo(outerRadius, 0); for (let i = 0; i <= teeth; i++) { const angle = (i / teeth) * Math.PI * 2; const nextAngle = ((i + 0.5) / teeth) * Math.PI * 2; gearShape.lineTo(Math.cos(angle) * outerRadius, Math.sin(angle) * outerRadius); gearShape.lineTo(Math.cos(nextAngle) * (outerRadius - 1), Math.sin(nextAngle) * (outerRadius - 1)); } const gearGeometry = new THREE.ExtrudeGeometry(gearShape, { depth: 1, bevelEnabled: false }); gearGeometry.center(); const gearMesh = new THREE.Mesh(gearGeometry, material); gearMesh.position.set(-1, 1, 0.5); group.add(headMesh); group.add(gearMesh); group.scale.set(1.2, 1.2, 1.2); return group; }
+        function createHelpingHeart(material) { const shape = new THREE.Shape(); shape.moveTo(2.5, 2.5); shape.bezierCurveTo(2.5, 2.5, 2, 0, 0, 0); shape.bezierCurveTo(-3, 0, -3, 3.5, -3, 3.5); shape.bezierCurveTo(-3, 5.5, 0, 7.7, 2.5, 9.5); shape.bezierCurveTo(5, 7.7, 8, 5.5, 8, 3.5); shape.bezierCurveTo(8, 3.5, 8, 0, 5, 0); shape.bezierCurveTo(3.5, 0, 2.5, 2.5, 2.5, 2.5); const geometry = new THREE.ExtrudeGeometry(shape, { depth: 2, bevelEnabled: true, bevelSize: 0.5, bevelSegments: 2 }); geometry.center(); return new THREE.Mesh(geometry, material); }
+        function createLightbulb(material) { const group = new THREE.Group(); const glassMaterial = material.clone(); glassMaterial.transparent = true; glassMaterial.opacity = 0.3; const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.8, roughness: 0.3 }); const bulb = new THREE.Mesh(new THREE.SphereGeometry(8, 32, 32), glassMaterial); const base = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 6, 16), baseMaterial); base.position.y = -9; const filament = new THREE.Mesh(new THREE.SphereGeometry(1.5, 8, 8), material); group.add(bulb, base, filament); return group; }
+        function createShield(material) { const shape = new THREE.Shape(); shape.moveTo(0, 10); shape.lineTo(8, 8); shape.lineTo(8, -5); shape.bezierCurveTo(8, -9, 0, -12, 0, -12); shape.bezierCurveTo(0, -12, -8, -9, -8, -5); shape.lineTo(-8, 8); shape.lineTo(0, 10); const geometry = new THREE.ExtrudeGeometry(shape, { depth: 1, bevelEnabled: true, bevelThickness: 1, bevelSize: 1, bevelSegments: 2 }); geometry.center(); return new THREE.Mesh(geometry, material); }
+        function createTrophy(material) { const group = new THREE.Group(); const cup = new THREE.Mesh(new THREE.CylinderGeometry(5, 3, 8, 16), material); cup.position.y = 5; const stem = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 4, 8), material); const base = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 1, 16), material); base.position.y = -3.5; const handleGeom = new THREE.TorusGeometry(3, 0.5, 8, 16, Math.PI); const leftHandle = new THREE.Mesh(handleGeom, material); leftHandle.position.set(-4, 5, 0); leftHandle.rotation.z = Math.PI / 4; const rightHandle = new THREE.Mesh(handleGeom, material); rightHandle.position.set(4, 5, 0); rightHandle.rotation.z = -Math.PI / 4; rightHandle.rotation.y = Math.PI; group.add(cup, stem, base, leftHandle, rightHandle); group.scale.set(0.8, 0.8, 0.8); return group; }
+
+        // --- Emblem Setup ---
+        const emblems = [];
+        const emblemData = [
+            { name: 'Wellness', modelFn: createMindIcon, color: 0x06b6d4, message: '<b>Mon, Sep 15 (Traditional):</b> Bring your best self to work by wearing your culture with pride!', position: new THREE.Vector3(-32, 0, 0), scale: 0.8, sigilIndex: 0 },
+            { name: 'Service', modelFn: createHelpingHeart, color: 0x84cc16, message: '<b>Tues, Sep 16 (Retro):</b> Relive the charm of yesteryears with iconic styles and flair!', position: new THREE.Vector3(20, 24, 0), scale: 1.0, sigilIndex: 1 },
+            { name: 'Curiosity', modelFn: createLightbulb, color: 0xa855f7, message: '<b>Weds, Sep 17 (Madhatter):</b> Surprise us with creative hat styles and fun accessories!', position: new THREE.Vector3(-8, -30, 0), scale: 0.8, sigilIndex: 4 },
+            { name: 'Courage', modelFn: createShield, color: 0xf97316, message: '<b>Thurs, Sep 18 (Twinning):</b> Double the fun with coordinated outfits and matching styles!', position: new THREE.Vector3(-8, 30, 0), scale: 0.8, sigilIndex: 3 },
+            { name: 'Excellence', modelFn: createTrophy, color: 0xfacc15, message: '<b>Fri, Sep 19 (Prints & Patterns):</b> Showcase a kaleidoscope of vibrant designs!', position: new THREE.Vector3(20, -24, 0), scale: 1.0, sigilIndex: 2 },
+        ];
+        
+        emblemData.forEach(data => {
+            const material = new THREE.MeshStandardMaterial({ color: data.color, emissive: data.color, emissiveIntensity: 0.6, metalness: 0.2, roughness: 0.5, side: THREE.DoubleSide });
+            const emblem = data.modelFn(material);
+            emblem.position.copy(data.position);
+            emblem.scale.set(data.scale, data.scale, data.scale);
+            const label = document.createElement('div');
+            label.textContent = data.name;
+            label.className = 'emblem-label';
+            labelsContainer.appendChild(label);
+            emblem.userData = { ...data, visited: false, baseColor: new THREE.Color(data.color), labelElement: label, targetScale: 1.0, collectionProgress: 0 };
+            emblems.push(emblem);
+            scene.add(emblem);
+        });
+
+        const raycaster = new THREE.Raycaster();
+
+        // --- Main Animation Loop ---
+        function animate(time) {
+            const delta = (time - lastTime) / 1000;
+            lastTime = time;
+
+            requestAnimationFrame(animate);
+            camera.position.x += (mouse.x * 5 - camera.position.x) * 0.02;
+            camera.position.y += (mouse.y * 5 - camera.position.y) * 0.02;
+            camera.lookAt(scene.position);
+            
+            const warpValue = isWarping ? (warpSpeed = Math.min(warpSpeed + 0.01, 1)) : (warpSpeed = Math.max(warpSpeed - 0.01, 0));
+            stars.rotation.z += 0.0005 + (0.05 * warpValue);
+            sigilGroup.rotation.z -= 0.001;
+
+            // Hover and Scale Logic
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(emblems, true);
+            let intersectedEmblem = null;
+            if (intersects.length > 0) {
+                let obj = intersects[0].object;
+                while(obj.parent && !obj.userData.name) { obj = obj.parent; }
+                if (obj.userData.name && !obj.userData.visited) {
+                    intersectedEmblem = obj;
+                }
+            }
+
+            if (hoveredEmblem && hoveredEmblem !== intersectedEmblem) {
+                // Not hovering anymore
+                stopHum();
+                particleBeam.visible = false;
+            }
+
+            hoveredEmblem = intersectedEmblem;
+            document.body.style.cursor = hoveredEmblem ? 'pointer' : 'default';
+
+            if (hoveredEmblem) {
+                 if(hoveredEmblem.userData.collectionProgress === 0) playHum();
+                 hoveredEmblem.userData.collectionProgress = Math.min(1, hoveredEmblem.userData.collectionProgress + delta / (HOVER_DURATION / 1000));
+                 updateCollectionVisuals(hoveredEmblem);
+                 if (hoveredEmblem.userData.collectionProgress >= 1) {
+                    collectEmblem(hoveredEmblem);
+                 }
+            }
+            
+            emblems.forEach(emblem => {
+                const isHovered = (emblem === hoveredEmblem);
+                emblem.userData.targetScale = isHovered ? 1.2 : 1.0;
+                const currentScale = emblem.scale.x;
+                const targetScale = emblem.userData.targetScale * emblem.userData.scale;
+                emblem.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
+                
+                emblem.rotation.y += 0.01;
+                const worldPosition = new THREE.Vector3();
+                emblem.getWorldPosition(worldPosition);
+                const screenPosition = worldPosition.project(camera);
+                const x = (screenPosition.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (-screenPosition.y * 0.5 + 0.5) * window.innerHeight;
+                emblem.userData.labelElement.style.left = `${x}px`;
+                emblem.userData.labelElement.style.top = `${y - (40 * emblem.scale.x / emblem.userData.scale) }px`;
+                emblem.userData.labelElement.style.display = screenPosition.z < 1 ? 'block' : 'none';
+            });
+            
+            renderer.render(scene, camera);
+        }
+        
+        // --- UI & Story Flow ---
+        function showScreen(screenId) {
+            Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+            if(screens[screenId]) {
+                screens[screenId].classList.remove('hidden');
+            }
+        }
+        
+        document.getElementById('start-journey-btn').addEventListener('click', async () => {
+            await Tone.start();
+            audioReady = true;
+            startAmbience();
+            screens.story.classList.add('fade-out-custom');
+            setTimeout(() => {
+                showScreen('journey');
+                sigilGroup.visible = true;
+                lastTime = performance.now();
+                animate(lastTime);
+            }, 500);
+        });
+
+        document.getElementById('proceed-btn').addEventListener('click', () => {
+            showScreen('location');
+        });
+
+        function updateCollectionVisuals(emblem) {
+            const progress = emblem.userData.collectionProgress;
+            const fragment = sigilFragments[emblem.userData.sigilIndex];
+            
+            // Update fragment opacity
+            fragment.material.opacity = Math.max(0.1, progress);
+            fragment.material.emissive.set(emblem.userData.color);
+            fragment.material.emissiveIntensity = progress * 2;
+            fragment.material.color.set(emblem.userData.color);
+
+            // Update Particle Beam
+            particleBeam.visible = true;
+            particleBeam.material.color.set(emblem.userData.color);
+            const positions = particleBeam.geometry.attributes.position.array;
+            const startPos = emblem.position;
+            const endPos = new THREE.Vector3(0,0,0);
+            
+            for(let i = 0; i < beamParticleCount; i++) {
+                const i3 = i * 3;
+                if(i / beamParticleCount > progress) {
+                    positions[i3] = positions[i3+1] = positions[i3+2] = startPos.x;
+                } else {
+                    const t = Math.random();
+                    const currentPos = new THREE.Vector3().lerpVectors(startPos, endPos, t);
+                    const radius = (1 - t) * 1.5;
+                    const angle = Math.random() * Math.PI * 2;
+                    currentPos.x += Math.cos(angle) * radius * (Math.random() * 0.5 + 0.5);
+                    currentPos.y += Math.sin(angle) * radius * (Math.random() * 0.5 + 0.5);
+                    
+                    positions[i3] = currentPos.x;
+                    positions[i3+1] = currentPos.y;
+                    positions[i3+2] = currentPos.z;
+                }
+            }
+            particleBeam.geometry.attributes.position.needsUpdate = true;
+        }
+        
+        function collectEmblem(emblem) {
+            if(emblem.userData.visited) return;
+            stopHum();
+            emblem.userData.visited = true;
+            visitedEmblems.add(emblem.userData.name);
+            
+            // Finalize fragment
+            const fragment = sigilFragments[emblem.userData.sigilIndex];
+            fragment.material.transparent = false;
+            fragment.material.opacity = 1;
+            fragment.material.emissiveIntensity = 1;
+
+            particleBeam.visible = false;
+            
+            // Fade out emblem
+            emblem.traverse(child => { if(child.isMesh) child.material.transparent = true; });
+            let emblemOpacity = 1;
+            function fadeEmblem() {
+                emblemOpacity -= 0.05;
+                if(emblemOpacity > 0) {
+                    emblem.traverse(child => { if(child.isMesh) child.material.opacity = emblemOpacity; });
+                    requestAnimationFrame(fadeEmblem);
+                } else {
+                    emblem.visible = false;
+                }
+            }
+            fadeEmblem();
+            
+            playLockSound();
+
+            // Update label to show dress code
+            const messageParts = emblem.userData.message.match(/<b>(.*?)<\/b>/);
+            if (messageParts && messageParts[1]) {
+                 emblem.userData.labelElement.innerHTML = messageParts[1];
+            } else {
+                emblem.userData.labelElement.textContent = "Collected!";
+            }
+            
+            emblem.userData.labelElement.classList.add('collected');
+            emblemCounter.textContent = `Fragments Restored: ${visitedEmblems.size} / 5`;
+            journeyInstruction.innerHTML = emblem.userData.message;
+            playChime();
+            
+            if (visitedEmblems.size === 5) allEmblemsVisited();
+        }
+
+        function allEmblemsVisited() {
+            // Sigil Completion Animation
+            let scale = 1;
+            function pulseSigil() {
+                scale += 0.01;
+                sigilGroup.scale.set(scale, scale, scale);
+                sigilFragments.forEach(f => {
+                    f.material.emissiveIntensity = 1 + Math.sin(Date.now() * 0.01) * 0.5;
+                });
+                if(scale < 1.2) requestAnimationFrame(pulseSigil);
+            }
+            pulseSigil();
+
+            setTimeout(() => {
+                screens.journey.classList.add('fade-out-custom');
+                let sigilOpacity = 1;
+                function fadeSigil() {
+                    sigilOpacity -= 0.02;
+                    if(sigilOpacity > 0) {
+                        sigilGroup.traverse(c => {if(c.isMesh) c.material.opacity = sigilOpacity});
+                        requestAnimationFrame(fadeSigil);
+                    } else {
+                        sigilGroup.visible = false;
+                    }
+                }
+                fadeSigil();
+                setTimeout(() => {
+                    showScreen('arrival');
+                }, 500);
+            }, 1500);
+        }
+        
+        function selectLocation(location) {
+            currentSelection.location = location;
+            isWarping = true;
+            playWhoosh();
+            showScreen('none');
+            setTimeout(() => {
+                showScreen('discovery');
+                isWarping = false;
+            }, 2000);
+        }
+
+        function performSearch(name) {
+            if (!name) return;
+            const employee = employeeDirectory.find(e => e.name.toLowerCase() === name.toLowerCase() && e.location === currentSelection.location);
+            if (employee) {
+                currentSelection.employee = employee;
+                searchError.textContent = '';
+                showTeamScreen('search');
+            } else {
+                searchError.textContent = 'Team member not found in this department.';
+            }
+        }
+        
+        findByNameBtn.addEventListener('click', () => {
+            performSearch(nameSearchInput.value.trim());
+        });
+
+        nameSearchInput.addEventListener('input', () => {
+            const query = nameSearchInput.value.trim().toLowerCase();
+            suggestionsBox.innerHTML = '';
+            if (query.length < 3) {
+                suggestionsBox.classList.add('hidden');
+                return;
+            }
+            const filtered = employeeDirectory.filter(e => e.location === currentSelection.location && e.name.toLowerCase().includes(query));
+            if (filtered.length > 0) {
+                filtered.forEach(employee => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.textContent = employee.name;
+                    item.onclick = () => {
+                        nameSearchInput.value = employee.name;
+                        suggestionsBox.classList.add('hidden');
+                        performSearch(employee.name);
+                    };
+                    suggestionsBox.appendChild(item);
+                });
+                suggestionsBox.classList.remove('hidden');
+            } else {
+                suggestionsBox.classList.add('hidden');
+            }
+        });
+        document.addEventListener('click', (e) => { if (!e.target.closest('.relative')) { suggestionsBox.classList.add('hidden'); } });
+
+
+        exploreTeamsBtn.addEventListener('click', () => showTeamScreen('explore'));
+        
+        function showTeamScreen(mode) {
+            showScreen('teams');
+            displayTeams(mode);
+        }
+
+        function displayTeams(mode) {
+            teamsGrid.innerHTML = '';
+            const teamsInLocation = teamsData[currentSelection.location];
+            const teamsTitle = document.getElementById('teams-title');
+            const teamsSubtitle = document.getElementById('teams-subtitle');
+            
+            if (mode === 'explore') {
+                teamsTitle.textContent = `Team Charters for ${currentSelection.location}`;
+                teamsSubtitle.textContent = 'Click any charter to reveal its members.';
+            } else if (mode === 'search') {
+                teamsTitle.textContent = `Welcome, ${currentSelection.employee.name}!`;
+                teamsSubtitle.textContent = 'Your team charter has been found.';
+            }
+
+            teamsInLocation.forEach((team, index) => {
+                const container = document.createElement('div');
+                container.className = 'team-card-container h-64';
+                container.style.animation = `fadeIn 1s ease-out ${index * 0.1}s forwards`;
+                container.style.opacity = 0;
+                const card = document.createElement('div');
+                card.className = 'team-card';
+                if(mode === 'explore') card.onclick = () => card.classList.toggle('is-flipped');
+                let membersList = team.members.map(member => `<li class="text-slate-300 text-sm">${member}</li>`).join('');
+                card.innerHTML = `
+                    <div class="team-card-face team-card-front">${teamLogos[team.name] || ''}<h3 class="text-xl font-bold mt-2 text-white">${team.name}</h3>${mode === 'explore' ? '<p class="text-xs text-gray-400 mt-2">Click for members</p>' : ''}</div>
+                    <div class="team-card-face team-card-back"><h4 class="text-lg font-bold text-amber-300">${team.name}</h4><ul class="mt-2 space-y-1 text-center">${membersList}</ul></div>`;
+                container.appendChild(card);
+                teamsGrid.appendChild(container);
+                if (mode === 'search' && team.name === currentSelection.employee.team) {
+                    setTimeout(() => { container.classList.add('is-revealed'); setTimeout(() => card.classList.add('is-flipped'), 500); playChime(); }, 500 + index * 100);
+                } else if (mode === 'search') {
+                    container.style.opacity = '0.3';
+                }
+            });
+        }
+        
+        function goBack() {
+            showScreen('story');
+            screens.story.classList.remove('fade-out-custom');
+            currentSelection = { location: null, employee: null };
+            nameSearchInput.value = '';
+            searchError.textContent = '';
+            visitedEmblems.clear();
+            emblemCounter.textContent = 'Fragments Restored: 0 / 5';
+            journeyInstruction.innerHTML = 'Hover over the emblems to restore the fragments of the sigil.';
+            emblems.forEach(emblem => {
+                emblem.visible = true;
+                emblem.userData.visited = false;
+                emblem.userData.collectionProgress = 0;
+                emblem.traverse(c=>{if(c.isMesh){c.material.opacity=1; c.material.transparent=false; c.material.emissive.copy(emblem.userData.baseColor)}});
+                emblem.userData.labelElement.textContent = emblem.userData.name;
+                emblem.userData.labelElement.classList.remove('collected');
+            });
+            particleBeam.visible = false;
+            sigilFragments.forEach(f => {
+                f.material.transparent = true;
+                f.material.opacity = 0.1;
+                f.material.emissiveIntensity = 1;
+            });
+            sigilGroup.scale.set(1,1,1);
+            labelsContainer.classList.remove('fade-out-custom');
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('mousemove', e => { mouse.x = (e.clientX / window.innerWidth) * 2 - 1; mouse.y = -(e.clientY / window.innerHeight) * 2 + 1; });
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+
+    </script>
+</body>
+</html>
+
