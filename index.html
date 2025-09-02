@@ -184,7 +184,7 @@
         </div>
     </div>
 
-    <div id="journey-screen" class="screen hidden pointer-events-none items-stretch">
+    <div id="journey-screen" class="screen hidden pointer-events-none justify-start">
         <div class="glass-panel p-6 max-w-md w-full sm:w-auto sm:absolute top-8 sm:left-8 fade-in pointer-events-auto">
              <h2 class="text-2xl font-bold text-sky-300 text-center">Assemble the Sigil</h2>
              <div id="journey-panel-content">
@@ -413,11 +413,11 @@
             { name: 'Excellence', modelFn: createTrophy, color: 0xfacc15, attireKey: 'patterns', message: '<b>Fri, Sep 19 (Prints & Patterns):</b> Showcase a kaleidoscope of vibrant designs!', position: new THREE.Vector3(20, -24, 0), scale: 1.0, sigilIndex: 2 },
         ];
         const emblemMobilePos = [
-            { position: new THREE.Vector3(0, 32, 0) },
-            { position: new THREE.Vector3(22, 10, 0) },
-            { position: new THREE.Vector3(15, -25, 0) },
-            { position: new THREE.Vector3(-15, -25, 0) },
-            { position: new THREE.Vector3(-22, 10, 0) },
+            { position: new THREE.Vector3(-20, -15, 0) }, // Wellness
+            { position: new THREE.Vector3(20, -15, 0) },  // Service
+            { position: new THREE.Vector3(-12, -30, 0) }, // Curiosity
+            { position: new THREE.Vector3(0, -10, 0) },   // Courage
+            { position: new THREE.Vector3(12, -30, 0) },  // Excellence
         ];
         
         emblemDesktopPos.forEach((data, i) => {
