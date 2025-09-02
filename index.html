@@ -208,8 +208,8 @@
 
     <div id="location-screen" class="screen hidden">
          <div class="glass-panel p-8 text-center max-w-xl mx-auto fade-in">
-             <h2 class="text-3xl font-bold text-sky-300">Select Your Department</h2>
-             <p class="text-slate-200 mt-2">Which department's charter are you seeking?</p>
+             <h2 class="text-3xl font-bold text-sky-300">Select Your Location</h2>
+             <p class="text-slate-200 mt-2">Which location's charter are you seeking?</p>
              <div class="flex flex-col sm:flex-row gap-4 mt-6 justify-center">
                 <button onclick="selectLocation('ETV')" class="action-button text-lg font-bold bg-purple-600 hover:bg-purple-500 rounded-lg px-8 py-4 shadow-[0_0_15px_rgba(147,51,234,0.5)]">ETV Department</button>
                 <button onclick="selectLocation('PTP')" class="action-button text-lg font-bold bg-sky-500 hover:bg-sky-400 rounded-lg px-8 py-4 shadow-[0_0_15px_rgba(14,165,233,0.5)]">PTP Department</button>
@@ -756,7 +756,7 @@
             searchError.textContent = '';
             visitedEmblems.clear();
             emblemCounter.textContent = 'Fragments Restored: 0 / 5';
-            journeyInstruction.innerHTML = 'Hover over the emblems to restore the fragments of the sigil.';
+            journeyInstruction.innerHTML = 'Hover/Click over the emblems to restore the fragments of the sigil.';
             journeyInstruction.style.display = 'block';
             themeSpotlight.classList.remove('visible');
             attireIconContainer.innerHTML = '';
