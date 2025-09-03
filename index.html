@@ -208,8 +208,8 @@
 
     <div id="location-screen" class="screen hidden">
          <div class="glass-panel p-8 text-center max-w-xl mx-auto fade-in">
-             <h2 class="text-3xl font-bold text-sky-300">Select Your Location</h2>
-             <p class="text-slate-200 mt-2">Which location's charter are you seeking?</p>
+             <h2 class="text-3xl font-bold text-sky-300">Select Your Department</h2>
+             <p class="text-slate-200 mt-2">Which department's charter are you seeking?</p>
              <div class="flex flex-col sm:flex-row gap-4 mt-6 justify-center">
                 <button onclick="selectLocation('ETV')" class="action-button text-lg font-bold bg-purple-600 hover:bg-purple-500 rounded-lg px-8 py-4 shadow-[0_0_15px_rgba(147,51,234,0.5)]">ETV Department</button>
                 <button onclick="selectLocation('PTP')" class="action-button text-lg font-bold bg-sky-500 hover:bg-sky-400 rounded-lg px-8 py-4 shadow-[0_0_15px_rgba(14,165,233,0.5)]">PTP Department</button>
@@ -380,6 +380,7 @@
         }
         scene.add(sigilGroup);
         sigilGroup.visible = false;
+        const mobileSigilCenter = new THREE.Vector3(0, -10, 0);
 
         // --- Particle Beam ---
         const beamParticleCount = 500;
@@ -412,13 +413,6 @@
             { name: 'Courage', modelFn: createShield, color: 0xf97316, attireKey: 'twinning', message: '<b>Thurs, Sep 18 (Twinning):</b> Double the fun with coordinated outfits and matching styles!', position: new THREE.Vector3(-8, 30, 0), scale: 0.8, sigilIndex: 3 },
             { name: 'Excellence', modelFn: createTrophy, color: 0xfacc15, attireKey: 'patterns', message: '<b>Fri, Sep 19 (Prints & Patterns):</b> Showcase a kaleidoscope of vibrant designs!', position: new THREE.Vector3(20, -24, 0), scale: 1.0, sigilIndex: 2 },
         ];
-        const emblemMobilePos = [
-            { position: new THREE.Vector3(-20, -15, 0) }, // Wellness
-            { position: new THREE.Vector3(20, -15, 0) },  // Service
-            { position: new THREE.Vector3(-12, -30, 0) }, // Curiosity
-            { position: new THREE.Vector3(0, -10, 0) },   // Courage
-            { position: new THREE.Vector3(12, -30, 0) },  // Excellence
-        ];
         
         emblemDesktopPos.forEach((data, i) => {
             const material = new THREE.MeshStandardMaterial({ color: data.color, emissive: data.color, emissiveIntensity: 0.6, metalness: 0.2, roughness: 0.5, side: THREE.DoubleSide });
@@ -428,7 +422,7 @@
             label.textContent = data.name;
             label.className = 'emblem-label';
             labelsContainer.appendChild(label);
-            emblem.userData = { ...data, mobilePosition: emblemMobilePos[i].position, desktopPosition: data.position, visited: false, baseColor: new THREE.Color(data.color), labelElement: label, targetScale: 1.0, collectionProgress: 0 };
+            emblem.userData = { ...data, desktopPosition: data.position, visited: false, baseColor: new THREE.Color(data.color), labelElement: label, targetScale: 1.0, collectionProgress: 0 };
             emblems.push(emblem);
             scene.add(emblem);
         });
@@ -541,7 +535,7 @@
             particleBeam.material.color.set(emblem.userData.color);
             const positions = particleBeam.geometry.attributes.position.array;
             const startPos = emblem.position;
-            const endPos = new THREE.Vector3(0,0,0);
+            const endPos = window.innerWidth < 768 ? mobileSigilCenter : new THREE.Vector3(0,0,0);
             
             for(let i = 0; i < beamParticleCount; i++) {
                 const i3 = i * 3;
@@ -756,7 +750,7 @@
             searchError.textContent = '';
             visitedEmblems.clear();
             emblemCounter.textContent = 'Fragments Restored: 0 / 5';
-            journeyInstruction.innerHTML = 'Hover/Click over the emblems to restore the fragments of the sigil.';
+            journeyInstruction.innerHTML = 'Hover over the emblems to restore the fragments of the sigil.';
             journeyInstruction.style.display = 'block';
             themeSpotlight.classList.remove('visible');
             attireIconContainer.innerHTML = '';
@@ -780,10 +774,21 @@
         }
         
         function updateLayout(isMobile) {
-             camera.position.z = isMobile ? 80 : 50;
-             emblems.forEach(emblem => {
-                emblem.position.copy(isMobile ? emblem.userData.mobilePosition : emblem.userData.desktopPosition);
-             });
+            camera.position.z = isMobile ? 80 : 50;
+            const mobileRadius = 22;
+
+            sigilGroup.position.copy(isMobile ? mobileSigilCenter : new THREE.Vector3(0,0,0));
+
+            emblems.forEach((emblem, i) => {
+                if (isMobile) {
+                    const angle = (i / emblems.length) * (Math.PI * 2) + (Math.PI / 2);
+                    const x = Math.cos(angle) * mobileRadius;
+                    const y = Math.sin(angle) * mobileRadius;
+                    emblem.position.set(x, y, 0).add(mobileSigilCenter);
+                } else {
+                    emblem.position.copy(emblem.userData.desktopPosition);
+                }
+            });
         }
 
         // --- Event Listeners ---
